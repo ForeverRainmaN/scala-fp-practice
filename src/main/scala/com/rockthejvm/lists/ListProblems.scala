@@ -1,6 +1,6 @@
 package com.rockthejvm.lists
 
-import scala.annotation.tailrec
+import scala.annotation.{tailrec, targetName}
 
 sealed abstract class RList[+T] {
   def head: T
@@ -9,7 +9,10 @@ sealed abstract class RList[+T] {
 
   def isEmpty: Boolean
 
-  def ::[S >: T](elem: S): RList[S] = ::(elem, this)
+  @targetName("prepend")
+  def ::[S >: T](elem: S): RList[S] = new::(elem, this)
+
+  def apply(index: Int): T
 }
 
 case object RNil extends RList[Nothing] {
@@ -21,6 +24,8 @@ case object RNil extends RList[Nothing] {
   override def isEmpty: Boolean = true
 
   override def toString: String = "[]"
+
+  override def apply(index: Int): Nothing = throw new NoSuchElementException
 }
 
 case class ::[+T](override val head: T, override val tail: RList[T]) extends RList[T] {
@@ -36,9 +41,20 @@ case class ::[+T](override val head: T, override val tail: RList[T]) extends RLi
 
     "[" + toStringTailrec(this, "") + "]"
   }
+
+  // Complexity O(min(n, index))
+  override def apply(index: Int): T = {
+    @tailrec
+    def go(i: Int, current: RList[T]): T =
+      if (i == index) current.head
+      else go(i + 1, current.tail)
+
+    if (index < 0) throw new NoSuchElementException
+    else go(0, this)
+  }
 }
 
 object ListProblems extends App {
   val aSmallList = 1 :: 2 :: 3 :: RNil
-  println(aSmallList)
+  println(aSmallList.apply(2))
 }
