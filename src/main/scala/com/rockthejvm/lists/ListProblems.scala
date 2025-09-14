@@ -15,6 +15,8 @@ sealed abstract class RList[+T] {
   def apply(index: Int): T
 
   def length: Int
+
+  def reverse: RList[T]
 }
 
 case object RNil extends RList[Nothing] {
@@ -30,6 +32,8 @@ case object RNil extends RList[Nothing] {
   override def apply(index: Int): Nothing = throw new NoSuchElementException
 
   override def length: Int = 0
+
+  override def reverse: RList[Nothing] = RNil
 }
 
 case class ::[+T](override val head: T, override val tail: RList[T]) extends RList[T] {
@@ -65,9 +69,42 @@ case class ::[+T](override val head: T, override val tail: RList[T]) extends RLi
 
     go(0, this)
   }
+
+  /*
+    [1,2,3,4].reverse = go([1,2,3,4], RNil)
+    = go([2,3,4], [1])
+    = go([3,4], [2,1])
+    = go([4], [3,2,1])
+    = go([], [4,3,2,1])
+    = [4,3,2,1]
+
+    Complexity: O(n)
+   */
+
+  override def reverse: RList[T] = {
+    @tailrec
+    def go(remaining: RList[T], acc: RList[T]): RList[T] = {
+      if (remaining.isEmpty) acc
+      else go(remaining.tail, remaining.head :: acc)
+    }
+
+    go(this, RNil)
+  }
+}
+
+object RList {
+  def from[T](iterable: Iterable[T]): RList[T] = {
+    @tailrec
+    def convertToRlist(remaining: Iterable[T], acc: RList[T]): RList[T] = {
+      if (remaining.isEmpty) acc
+      else convertToRlist(remaining.tail, remaining.head :: acc)
+    }
+
+    convertToRlist(iterable, RNil).reverse
+  }
 }
 
 object ListProblems extends App {
   val aSmallList = 1 :: 2 :: 3 :: RNil
-  println(aSmallList.length)
+  println(aSmallList.reverse)
 }
