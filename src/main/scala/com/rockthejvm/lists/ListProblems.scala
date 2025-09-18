@@ -19,6 +19,8 @@ sealed abstract class RList[+T] {
   def reverse: RList[T]
 
   def ++[S >: T](anotherList: RList[S]): RList[S]
+
+  def removeAt(index: Int): RList[T]
 }
 
 case object RNil extends RList[Nothing] {
@@ -38,6 +40,8 @@ case object RNil extends RList[Nothing] {
   override def reverse: RList[Nothing] = RNil
 
   override def ++[S >: Nothing](anotherList: RList[S]): RList[S] = anotherList
+
+  override def removeAt(index: Int): RList[Nothing] = RNil
 }
 
 case class ::[+T](override val head: T, override val tail: RList[T]) extends RList[T] {
@@ -105,8 +109,24 @@ case class ::[+T](override val head: T, override val tail: RList[T]) extends RLi
     go(anotherList, this.reverse).reverse
     //def ++[S >: T](anotherList: RList[S]): RList[S] = head :: (tail ++ anotherList)
   }
-}
 
+  // Complexity: O(N)
+  override def removeAt(index: Int): RList[T] = {
+    @tailrec
+    def go(count: Int, leftSide: RList[T], rightSide: RList[T]): RList[T] = {
+      if (count == index) leftSide.reverse ++ rightSide.tail
+      else if (rightSide.isEmpty) leftSide.reverse
+      else go(count + 1, rightSide.head :: leftSide, rightSide.tail)
+    }
+
+    go(0, RNil, this)
+  }
+  /*
+    def removeAt(index: Int): RList[T] =
+        if(index == 0) tail
+        else head :: tail.removeAt(index-1)
+   */
+}
 
 object RList {
   def from[T](iterable: Iterable[T]): RList[T] = {
@@ -123,5 +143,6 @@ object RList {
 object ListProblems extends App {
   val aSmallList = 1 :: 2 :: 3 :: RNil
   val anotherList = 4 :: 5 :: 6 :: RNil
-  println(aSmallList ++ anotherList)
+  val newList = aSmallList.removeAt(6)
+  println(newList)
 }
