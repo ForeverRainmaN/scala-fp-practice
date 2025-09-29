@@ -27,6 +27,8 @@ sealed abstract class RList[+T] {
   def flatMap[S](f: T => RList[S]): RList[S]
 
   def filter(f: T => Boolean): RList[T]
+
+  def rle: RList[(T, Int)]
 }
 
 case object RNil extends RList[Nothing] {
@@ -54,6 +56,8 @@ case object RNil extends RList[Nothing] {
   override def flatMap[S](f: Nothing => RList[S]): RList[Nothing] = RNil
 
   override def filter(f: Nothing => Boolean): RList[Nothing] = RNil
+
+  override def rle: RList[(Nothing, Int)] = RNil
 }
 
 case class ::[+T](override val head: T, override val tail: RList[T]) extends RList[T] {
@@ -150,6 +154,7 @@ case class ::[+T](override val head: T, override val tail: RList[T]) extends RLi
 
     go(this, RNil)
   }
+
   // Complexity:
   // Naive: O(N)
   // Less naive: O(sum of all the lengths of f(x) = Z)
@@ -175,6 +180,32 @@ case class ::[+T](override val head: T, override val tail: RList[T]) extends RLi
 
     go(this, RNil)
   }
+
+  // Complexity: O(N)
+
+  override def rle: RList[(T, Int)] = {
+    @tailrec
+    def go(remaining: RList[T], acc: RList[(T, Int)], count: Int): RList[(T, Int)] = {
+      if (remaining.isEmpty) acc
+      else if (remaining.tail.isEmpty) (remaining.head, count) :: acc
+      else if (remaining.head != remaining.tail.head) go(remaining.tail, (remaining.head, count) :: acc, count = 1)
+      else go(remaining.tail, acc, count + 1)
+    }
+
+    go(this, RNil, 1).reverse
+  }
+
+  def rle_v2: RList[(T, Int)] = {
+    @tailrec
+    def go(remaining: RList[T], currentTuple: (T, Int), acc: RList[(T, Int)]): RList[(T, Int)] = {
+      if (remaining.isEmpty && currentTuple._2 == 0) acc
+      else if (remaining.isEmpty) currentTuple :: acc
+      else if (remaining.head == currentTuple._1) go(remaining.tail, currentTuple.copy(_2 = currentTuple._2 + 1), acc)
+      else go(remaining.tail, (remaining.head, 1), currentTuple :: acc)
+    }
+
+    go(this.tail, (this.head, 1), RNil).reverse
+  }
 }
 
 object RList {
@@ -192,11 +223,12 @@ object RList {
 object ListProblems extends App {
   val aSmallList = 1 :: 2 :: 3 :: 4 :: 5 :: 6 :: 7 :: 8 :: 9 :: 10 :: RNil
   val anotherList = 4 :: 5 :: 6 :: RNil
+
+  val testList = RList.from(List(1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5))
   val newList = aSmallList.removeAt(6)
   val asd = aSmallList.flatMap(x => ::(x, ::(x + 1, RNil)))
 
+  val anotherList2 = RList.from(List())
 
   //  println(aSmallList.filter(_ % 2 == 0))
-  println(anotherList.map(_ * 2))
-  println(aSmallList.map(_ * 2))
 }
