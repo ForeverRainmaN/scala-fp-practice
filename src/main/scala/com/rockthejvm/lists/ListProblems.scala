@@ -29,6 +29,8 @@ sealed abstract class RList[+T] {
   def filter(f: T => Boolean): RList[T]
 
   def rle: RList[(T, Int)]
+
+  def duplicateEach(k: Int): RList[T]
 }
 
 case object RNil extends RList[Nothing] {
@@ -58,6 +60,8 @@ case object RNil extends RList[Nothing] {
   override def filter(f: Nothing => Boolean): RList[Nothing] = RNil
 
   override def rle: RList[(Nothing, Int)] = RNil
+
+  override def duplicateEach(k: Int): RList[Nothing] = RNil
 }
 
 case class ::[+T](override val head: T, override val tail: RList[T]) extends RList[T] {
@@ -206,6 +210,55 @@ case class ::[+T](override val head: T, override val tail: RList[T]) extends RLi
 
     go(this.tail, (this.head, 1), RNil).reverse
   }
+
+  override def duplicateEach(k: Int): RList[T] = {
+    @tailrec
+    def go(remaining: RList[T], acc: RList[T], currentElement: T, currElementCount: Int): RList[T] = {
+      if (remaining.isEmpty && currElementCount == 0) acc
+      else if (remaining.isEmpty && currElementCount == k) currentElement :: acc
+      else if (currElementCount < k) go(remaining, currentElement :: acc, currentElement, currElementCount + 1)
+      else go(remaining.tail, acc, remaining.head, 0)
+    }
+
+    if (k <= 0) this
+    else go(this.tail, RNil, this.head, 0).reverse
+  }
+
+  def duplicateEach_v2(k: Int): RList[T] = {
+    @tailrec
+    def constructLists(currentLength: Int, currentElement: T, acc: RList[T]): RList[T] = {
+      if (currentLength == k) acc
+      else constructLists(currentLength + 1, currentElement, currentElement :: acc)
+    }
+
+    if (k <= 0) this
+    else this.flatMap(x => constructLists(0, x, RNil))
+  }
+
+  def duplicateEach_v3(k: Int): RList[T] = {
+    if (k <= 0) this
+    else this.flatMap { elem =>
+      @tailrec
+      def replicate(n: Int, acc: RList[T]): RList[T] =
+        if (n == 0) acc
+        else replicate(n - 1, elem :: acc)
+
+      replicate(k, RNil)
+    }
+  }
+
+  // Complexity: O(N * K)
+  def duplicateEach_v4(k: Int): RList[T] = {
+    @tailrec
+    def go(remaining: RList[T], currentElement: T, nDuplications: Int, accumulator: RList[T]): RList[T] = {
+      if (remaining.isEmpty && nDuplications == k) accumulator.reverse
+      else if (remaining.isEmpty) go(remaining, currentElement, nDuplications + 1, currentElement :: accumulator)
+      else if (nDuplications == k) go(remaining.tail, remaining.head, 0, accumulator)
+      else go(remaining, currentElement, nDuplications + 1, currentElement :: accumulator)
+    }
+
+    go(this.tail, this.head, 0, RNil)
+  }
 }
 
 object RList {
@@ -224,7 +277,10 @@ object ListProblems extends App {
   val aSmallList = 1 :: 2 :: 3 :: 4 :: 5 :: 6 :: 7 :: 8 :: 9 :: 10 :: RNil
   val anotherList = 4 :: 5 :: 6 :: RNil
 
-  val testList = RList.from(List(1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5))
+  val list = RList.from(List(1, 2, 3))
+  println(list.duplicateEach(2))
+
+
   val newList = aSmallList.removeAt(6)
   val asd = aSmallList.flatMap(x => ::(x, ::(x + 1, RNil)))
 
