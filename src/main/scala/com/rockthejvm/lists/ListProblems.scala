@@ -301,26 +301,27 @@ case class ::[+T](override val head: T, override val tail: RList[T]) extends RLi
   }
 
   override def sample(k: Int): RList[T] = {
-    if (k <= 0) return RNil
+    if (k <= 0 || this.isEmpty) RNil
+    else {
+      import scala.util.Random
 
-    import scala.util.Random
+      @tailrec
+      def convertToVector(remaining: RList[T], acc: Vector[T]): Vector[T] = {
+        if (remaining.isEmpty) acc
+        else convertToVector(remaining.tail, remaining.head +: acc)
+      }
 
-    @tailrec
-    def convertToVector(remaining: RList[T], acc: Vector[T]): Vector[T] = {
-      if (remaining.isEmpty) acc
-      else convertToVector(remaining.tail, remaining.head +: acc)
+      val vec = convertToVector(this, Vector.empty[T])
+      val vecLength = vec.length
+
+      @tailrec
+      def go(resultList: RList[T], count: Int): RList[T] = {
+        if (count == k) resultList
+        else go(vec(Random.nextInt(vecLength)) :: resultList, count + 1)
+      }
+
+      go(RNil, 0)
     }
-
-    val vec = convertToVector(this, Vector.empty[T])
-    val vecLength = vec.length
-
-    @tailrec
-    def go(resultList: RList[T], count: Int): RList[T] = {
-      if (count == k) resultList
-      else go(vec(Random.nextInt(vecLength)) :: resultList, count + 1)
-    }
-
-    go(RNil, 0)
   }
 
   // Complexity: O(N * K)
