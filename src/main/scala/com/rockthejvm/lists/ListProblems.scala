@@ -33,6 +33,8 @@ sealed abstract class RList[+T] {
   def duplicateEach(k: Int): RList[T]
 
   def rotate(k: Int): RList[T]
+
+  def sample(k: Int): RList[T]
 }
 
 case object RNil extends RList[Nothing] {
@@ -66,6 +68,8 @@ case object RNil extends RList[Nothing] {
   override def duplicateEach(k: Int): RList[Nothing] = RNil
 
   override def rotate(k: Int): RList[Nothing] = RNil
+
+  override def sample(k: Int): RList[Nothing] = RNil
 }
 
 case class ::[+T](override val head: T, override val tail: RList[T]) extends RList[T] {
@@ -295,6 +299,80 @@ case class ::[+T](override val head: T, override val tail: RList[T]) extends RLi
 
     go(this, k, RNil)
   }
+
+  override def sample(k: Int): RList[T] = {
+    if (k <= 0) return RNil
+
+    import scala.util.Random
+
+    @tailrec
+    def convertToVector(remaining: RList[T], acc: Vector[T]): Vector[T] = {
+      if (remaining.isEmpty) acc
+      else convertToVector(remaining.tail, remaining.head +: acc)
+    }
+
+    val vec = convertToVector(this, Vector.empty[T])
+    val vecLength = vec.length
+
+    @tailrec
+    def go(resultList: RList[T], count: Int): RList[T] = {
+      if (count == k) resultList
+      else go(vec(Random.nextInt(vecLength)) :: resultList, count + 1)
+    }
+
+    go(RNil, 0)
+  }
+
+  // Complexity: O(N * K)
+  def sample_v2(k: Int): RList[T] = {
+    import scala.util.Random
+    val random = new Random
+
+    @tailrec
+    def go(list: RList[T], accumulator: RList[T], randomIndex: Int): RList[T] = {
+      if (accumulator.length == k) accumulator
+      else go(list, list.apply(randomIndex) :: accumulator, random.nextInt(length))
+    }
+
+    go(this, RNil, random.nextInt(length))
+  }
+
+  def sample_v3(k: Int): RList[T] = {
+    import scala.util.Random
+    val random = new Random
+
+    @tailrec
+    def go(list: RList[T], accumulator: RList[T], randomIndex: Int, count: Int): RList[T] = {
+      if (accumulator.length == k) accumulator
+      else if (count < randomIndex) go(list.tail, accumulator, randomIndex, count + 1)
+      else go(this, list.head :: accumulator, random.nextInt(length), count = 0)
+    }
+
+    go(this, RNil, random.nextInt(length), 0)
+  }
+
+  def sample_v4(k: Int): RList[T] = {
+    import scala.util.Random
+
+    val random = new Random(System.currentTimeMillis())
+    val maxIndex = this.length
+
+    @tailrec
+    def go(nRemaining: Int, accumulator: RList[T]): RList[T] = {
+      if (nRemaining == 0) accumulator
+      else {
+        val index = random.nextInt(maxIndex)
+        val newElement = this (index)
+        go(nRemaining - 1, newElement :: accumulator)
+      }
+    }
+
+    // Complexity: O(N * K)
+    def goElegant: RList[T] = RList.from((1 to k).map(_ => random.nextInt(maxIndex)).map(index => this (index)))
+
+    if (k < 0) RNil
+    else go(k, RNil)
+  }
 }
 
 object RList {
@@ -310,5 +388,5 @@ object RList {
 }
 
 object ListProblems extends App {
-  println(RList.from(List(1, 2, 3)).rotate(4))
+  println(RList.from(List(1, 2, 3, 4, 5, 6, 7, 8, 9)).sample(10))
 }
