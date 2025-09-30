@@ -31,6 +31,8 @@ sealed abstract class RList[+T] {
   def rle: RList[(T, Int)]
 
   def duplicateEach(k: Int): RList[T]
+
+  def rotate(k: Int): RList[T]
 }
 
 case object RNil extends RList[Nothing] {
@@ -62,6 +64,8 @@ case object RNil extends RList[Nothing] {
   override def rle: RList[(Nothing, Int)] = RNil
 
   override def duplicateEach(k: Int): RList[Nothing] = RNil
+
+  override def rotate(k: Int): RList[Nothing] = RNil
 }
 
 case class ::[+T](override val head: T, override val tail: RList[T]) extends RList[T] {
@@ -259,6 +263,38 @@ case class ::[+T](override val head: T, override val tail: RList[T]) extends RLi
 
     go(this.tail, this.head, 0, RNil)
   }
+
+  override def rotate(k: Int): RList[T] = {
+    val n = length
+    if (n == 0) RNil
+    else {
+      val effectiveK = ((k % n) + n) % n
+      if (effectiveK == 0) this
+      else {
+        @tailrec
+        def go(remaining: RList[T], accumulator: RList[T], count: Int): RList[T] = {
+          if (count == effectiveK) remaining ++ accumulator.reverse
+          else go(remaining.tail, remaining.head :: accumulator, count + 1)
+        }
+
+        go(this, RNil, 0)
+      }
+    }
+  }
+
+  // Complexity: O(max(N, K))
+
+  def rotate_v2(k: Int): RList[T] = {
+    @tailrec
+    def go(remaining: RList[T], rotationsLeft: Int, acc: RList[T]): RList[T] = {
+      if (remaining.isEmpty && rotationsLeft == 0) this
+      else if (remaining.isEmpty) go(this, rotationsLeft, RNil)
+      else if (rotationsLeft == 0) remaining ++ acc.reverse
+      else go(remaining.tail, rotationsLeft - 1, remaining.head :: acc)
+    }
+
+    go(this, k, RNil)
+  }
 }
 
 object RList {
@@ -274,17 +310,5 @@ object RList {
 }
 
 object ListProblems extends App {
-  val aSmallList = 1 :: 2 :: 3 :: 4 :: 5 :: 6 :: 7 :: 8 :: 9 :: 10 :: RNil
-  val anotherList = 4 :: 5 :: 6 :: RNil
-
-  val list = RList.from(List(1, 2, 3))
-  println(list.duplicateEach(2))
-
-
-  val newList = aSmallList.removeAt(6)
-  val asd = aSmallList.flatMap(x => ::(x, ::(x + 1, RNil)))
-
-  val anotherList2 = RList.from(List())
-
-  //  println(aSmallList.filter(_ % 2 == 0))
+  println(RList.from(List(1, 2, 3)).rotate(4))
 }
