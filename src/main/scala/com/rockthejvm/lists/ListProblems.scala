@@ -178,7 +178,32 @@ case class ::[+T](override val head: T, override val tail: RList[T]) extends RLi
       else go(remaining.tail, f(remaining.head).reverse ++ acc)
     }
 
-    go(this, RNil)
+    /*
+      [1,2,3].flatMap(x => [x, x * 2]) = betterFlatMap([1,2,3], [])
+      = betterFlatMap([2,3], [[2,1]]
+      = betterFlatMap([3], [[4,2],[2,1]])
+      = betterFlatMap([], [[6,3]], [4,2], [2,1]])
+      = concatenateAll([[6,3], [4,2], [2,1]], [], [])
+      = concatenateAll([[4,2],[2,1], [6,3], [])
+      = concatenateAll([[4,2],[2,1], [3], [6])
+      = concatenateAll([[4,2],[2,1], [], [3,6])
+      etc
+     */
+    // Complexity: O(N + Z)
+    @tailrec
+    def betterFlatMap(remaining: RList[T], accumulator: RList[RList[S]]): RList[S] = {
+      if (remaining.isEmpty) concatenateAll(accumulator, RNil, RNil)
+      else betterFlatMap(remaining.tail, f(remaining.head).reverse :: accumulator)
+    }
+
+    // Complexity: O(Z)
+    @tailrec
+    def concatenateAll(elements: RList[RList[S]], currentList: RList[S], accumulator: RList[S]): RList[S] =
+      if (currentList.isEmpty && elements.isEmpty) accumulator
+      else if (currentList.isEmpty) concatenateAll(elements.tail, elements.head, accumulator)
+      else concatenateAll(elements, currentList.tail, currentList.head :: accumulator)
+
+    betterFlatMap(this, RNil)
   }
 
   // Complexity: O(N)
