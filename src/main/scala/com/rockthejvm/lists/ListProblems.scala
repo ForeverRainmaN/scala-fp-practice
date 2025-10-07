@@ -35,6 +35,8 @@ sealed abstract class RList[+T] {
   def rotate(k: Int): RList[T]
 
   def sample(k: Int): RList[T]
+
+  def sorted[S >: T](ordering: Ordering[S]): RList[S]
 }
 
 case object RNil extends RList[Nothing] {
@@ -70,6 +72,8 @@ case object RNil extends RList[Nothing] {
   override def rotate(k: Int): RList[Nothing] = RNil
 
   override def sample(k: Int): RList[Nothing] = RNil
+
+  override def sorted[S >: Nothing](ordering: Ordering[S]): RList[S] = RNil
 }
 
 case class ::[+T](override val head: T, override val tail: RList[T]) extends RList[T] {
@@ -399,6 +403,33 @@ case class ::[+T](override val head: T, override val tail: RList[T]) extends RLi
     if (k < 0) RNil
     else go(k, RNil)
   }
+
+  override def sorted[S >: T](ordering: Ordering[S]): RList[S] = {
+    /*
+         insertSorted(4, [], [1,2,3,5]) =
+         insertSorted(4, [1], [2,3,5]) =
+         insertSorted(4, [2,1], [3,5]) =
+         insertSorted(4, [3,2,1], [5]) =
+         [3,2,1].reverse + (4 :: [5]) =
+         [1,2,3,4,5]
+        */
+
+    // Complexity: O(N)
+    @tailrec
+    def insertSorted(element: T, before: RList[S], after: RList[S]): RList[S] = {
+      if (after.isEmpty || ordering.lteq(element, after.head)) before.reverse ++ (element :: after)
+      else insertSorted(element, after.head :: before, after.tail)
+    }
+
+    // Complexity: O(N^2)
+    @tailrec
+    def insertSortTailrec(remaining: RList[T], acc: RList[S]): RList[S] = {
+      if (remaining.isEmpty) acc
+      else insertSortTailrec(remaining.tail, insertSorted(remaining.head, RNil, acc))
+    }
+
+    insertSortTailrec(this, RNil)
+  }
 }
 
 object RList {
@@ -415,4 +446,5 @@ object RList {
 
 object ListProblems extends App {
   println(RList.from(List(1, 2, 3, 4, 5, 6, 7, 8, 9)).sample(10))
+  println(RList.from(List(1, 2, 3, 4, 5)).sorted((a, b) => if (a > b) 1 else 0))
 }
