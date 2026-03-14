@@ -23,4 +23,30 @@ object NumberProblems extends App {
 
     go(2)
   }
+  // the constituent prime divisors
+  def decompose(n: Int): List[Int] = {
+    @tailrec
+    def go(curr: Int, currDiv: Int, acc: List[Int]): List[Int] = {
+      if (curr <= 1) acc.reverse
+      else if (curr % currDiv != 0) go(curr / currDiv, currDiv, currDiv :: acc)
+      else go(curr, currDiv + 1, acc)
+    }
+
+    if (isPrime(n)) List(n) else go(n, 2, List())
+  }
+
+  // Complexity: O(sqrt(n))
+  def decomposeV2(n: Int): List[Int] = {
+    assert(n > 0)
+
+    @tailrec
+    def go(remaining: Int, currentDivisor: Int, acc: List[Int]): List[Int] = {
+      if (currentDivisor > Math.sqrt(remaining)) remaining :: acc
+      else if (remaining % currentDivisor == 0)
+        go(remaining / currentDivisor, currentDivisor, currentDivisor :: acc)
+      else go(remaining, currentDivisor + 1, acc)
+    }
+
+    go(n, 2, List())
+  }
 }
