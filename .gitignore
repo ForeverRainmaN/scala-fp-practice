@@ -150,6 +150,10 @@ project/plugins/project/
 .cache
 .lib/
 target/*
+.metals
+.vscode
+.idea
+.bloop
 ### Scala ###
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
