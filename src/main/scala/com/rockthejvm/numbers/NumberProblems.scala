@@ -2,6 +2,35 @@ package com.rockthejvm.numbers
 
 import scala.annotation.tailrec
 
+object NumberOps {
+  extension (n: Int) {
+    def decompose: List[Int] = {
+      assert(n > 0)
+      @tailrec
+      def go(remaining: Int, divisor: Int, acc: List[Int]): List[Int] = {
+        if (divisor * divisor > remaining) {
+          if (remaining == 1) acc else remaining :: acc
+        } else if (remaining % divisor == 0) {
+          go(remaining / divisor, divisor, divisor :: acc)
+        } else {
+          go(remaining, divisor + 1, acc)
+        }
+      }
+      go(n, 2, Nil).reverse
+    }
+
+    def isPrime: Boolean = {
+      @tailrec
+      def go(currentDivisor: Int): Boolean = {
+        if (currentDivisor > Math.sqrt(Math.abs(n))) true
+        else n % currentDivisor != 0 && go(currentDivisor + 1)
+      }
+
+      go(2)
+    }
+  }
+}
+
 object NumberProblems extends App {
   def isPrime(n: Int): Boolean = {
     @tailrec
@@ -37,7 +66,7 @@ object NumberProblems extends App {
 
   // Complexity: O(sqrt(n))
   def decomposeV2(n: Int): List[Int] = {
-    assert(n > 0)
+    assert(n >= 0)
 
     @tailrec
     def go(remaining: Int, currentDivisor: Int, acc: List[Int]): List[Int] = {
