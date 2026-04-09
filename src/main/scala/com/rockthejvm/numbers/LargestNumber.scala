@@ -29,8 +29,4 @@ object LargestNumber {
 
     if (largest.charAt(0) == '0') "0" else largest
   }
-
-  def main(args: Array[String]): Unit = {
-    println(largestNumber(List(3, 30, 5, 9, 34)))
-  }
 }

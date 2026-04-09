@@ -48,12 +48,12 @@ object ParseInteger {
 
   def parseIntegerV2(string: String): Int = {
     val WHITESPACE = ' '
-    val plus = '+'
-    val minus = '-'
+    val PLUS = '+'
+    val MINUS = '-'
     val DIGITS = "0123456789".toSet
 
     def integerRangeEnd(sign: Int): Int =
-      if (sign >= 0) Int.MaxValue esle Int.MinValue
+      if (sign >= 0) Int.MaxValue else Int.MinValue
 
     @tailrec
     def parseTailRec(remainder: String, sign: Int, acc: Int = 0): Int = {
@@ -63,7 +63,7 @@ object ParseInteger {
         val tentativeResult = acc * 10 + newDigit * sign
 
         if ((sign >= 0) != (tentativeResult >= 0)) integerRangeEnd(sign)
-        else parseTailrec(remainder.substring(1), sign, tentativeResult)
+        else parseTailRec(remainder.substring(1), sign, tentativeResult)
       }
     }
 
@@ -75,6 +75,4 @@ object ParseInteger {
       parseTailRec(string.substring(1), sign = -1)
     else parseTailRec(string, sign = 1)
   }
-
-  def main(args: Array[String]): Unit = {}
 }

@@ -2,7 +2,7 @@ package com.rockthejvm.numbers
 
 import scala.annotation.tailrec
 
-object ReverseInteger extends App {
+object ReverseInteger {
   // return a number with the digits reversed
   // if the result overflows Int, return 0
   def reverseInteger(number: Int): Int = {
