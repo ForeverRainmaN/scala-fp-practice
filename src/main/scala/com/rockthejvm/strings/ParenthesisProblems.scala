@@ -64,16 +64,50 @@ object ParenthesisProblems extends App {
 
     go(string, 0)
   }
+  /*
+    n => 1 => List("()")
+    n => 2 => List("()()", "(())")
+    n => 3 => List("()()()", "()(())", "((()))", "(()())")
+   */
+  def generateAllValidParentheses(n: Int): List[String] = {
+    /*
+      () + () = prepend
+      ( + () +) = inject
+      () + () = append
+     */
+    @tailrec
+    def go(nRemainingParens: Int, currentStrings: Set[String]): Set[String] = {
+      if (nRemainingParens == 0) currentStrings
+      else {
+        val newStrings = for {
+          string <- currentStrings //
+          index <- 0 until string.length
+        } yield {
+          val (before, after) = string.splitAt(index)
+          s"$before()$after"
+        }
 
-  println(hasValidParentheses("()")) // true
-  println(hasValidParentheses("()()")) // true
-  println(hasValidParentheses("[]")) // true
-  println(hasValidParentheses("(())")) // true
-  println(hasValidParentheses("{}")) // true
-  println(hasValidParentheses("(()")) // false
-  println(hasValidParentheses("(()}")) // false
-  println(hasValidParentheses("(()]")) // false
-  println(hasValidParentheses(")(")) // false
-  println(hasValidParentheses("][")) // false
-  println(hasValidParentheses("}{")) // false
+        go(nRemainingParens - 1, newStrings)
+      }
+    }
+
+    assert(n >= 0)
+
+    if (n == 0) List()
+    else go(n - 1, Set("()")).toList
+  }
+
+  generateAllValidParentheses(4)
+
+  // println(hasValidParentheses("()")) // true
+  // println(hasValidParentheses("()()")) // true
+  // println(hasValidParentheses("[]")) // true
+  // println(hasValidParentheses("(())")) // true
+  // println(hasValidParentheses("{}")) // true
+  // println(hasValidParentheses("(()")) // false
+  // println(hasValidParentheses("(()}")) // false
+  // println(hasValidParentheses("(()]")) // false
+  // println(hasValidParentheses(")(")) // false
+  // println(hasValidParentheses("][")) // false
+  // println(hasValidParentheses("}{")) // false
 }
