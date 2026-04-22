@@ -69,45 +69,52 @@ object ParenthesisProblems extends App {
     n => 2 => List("()()", "(())")
     n => 3 => List("()()()", "()(())", "((()))", "(()())")
    */
-  def generateAllValidParentheses(n: Int): List[String] = {
-    /*
-      () + () = prepend
-      ( + () +) = inject
-      () + () = append
-     */
-    @tailrec
-    def go(nRemainingParens: Int, currentStrings: Set[String]): Set[String] = {
-      if (nRemainingParens == 0) currentStrings
-      else {
-        val newStrings = for {
-          string <- currentStrings //
-          index <- 0 until string.length
-        } yield {
-          val (before, after) = string.splitAt(index)
-          s"$before()$after"
-        }
+  // def generateAllValidParentheses(n: Int): List[String] = {
+  //   /*
+  //     () + () = prepend
+  //     ( + () +) = inject
+  //     () + () = append
+  //    */
+  // }
 
-        go(nRemainingParens - 1, newStrings)
+  class ListNode(_x: Int = 0, _next: ListNode = null) {
+    var next: ListNode = _next
+    var x: Int = _x
+  }
+
+  def reverseWords(s: String): String = {
+    val splitted = s.split(' ')
+    def go(remaining: Array[String], acc: String): String = {
+      if (remaining.isEmpty) acc
+      else {
+        val reversed = reverseChars(
+          0,
+          remaining.head.length - 1,
+          StringBuilder(remaining.head)
+        )
+        if (remaining.tail.isEmpty) acc + reversed
+        else go(remaining.tail, acc + reversed + ' ')
       }
     }
 
-    assert(n >= 0)
+    @tailrec
+    def reverseChars(
+        firstIndex: Int,
+        secondIndex: Int,
+        acc: StringBuilder
+    ): String = {
+      if (firstIndex >= secondIndex) acc.toString
+      else {
+        val first = acc(firstIndex)
+        val second = acc(secondIndex)
+        acc(second) = first
+        acc(first) = second
 
-    if (n == 0) List()
-    else go(n - 1, Set("()")).toList
+        reverseChars(firstIndex + 1, secondIndex - 1, acc)
+      }
+    }
+    go(splitted, "")
   }
 
-  generateAllValidParentheses(4)
-
-  // println(hasValidParentheses("()")) // true
-  // println(hasValidParentheses("()()")) // true
-  // println(hasValidParentheses("[]")) // true
-  // println(hasValidParentheses("(())")) // true
-  // println(hasValidParentheses("{}")) // true
-  // println(hasValidParentheses("(()")) // false
-  // println(hasValidParentheses("(()}")) // false
-  // println(hasValidParentheses("(()]")) // false
-  // println(hasValidParentheses(")(")) // false
-  // println(hasValidParentheses("][")) // false
-  // println(hasValidParentheses("}{")) // false
+  println(reverseWords("Let's take LeetCode contest"))
 }
