@@ -3,7 +3,7 @@ package com.rockthejvm.strings
 import scala.annotation.tailrec
 import scala.collection.mutable.Map as MutableMap
 
-object RansomNote {
+object RansomNote extends App {
   def ransomNote(note: String, magazine: String): Boolean = {
     @tailrec
     def createFreqMap(
