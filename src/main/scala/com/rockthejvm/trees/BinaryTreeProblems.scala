@@ -25,6 +25,14 @@ enum BTree[+T]:
     case BNode(_, Empty, Empty) => true
     case _                      => false
 
+  def size: Int =
+    @tailrec
+    def go(stack: List[BTree[T]], size: Int): Int = stack match
+      case Nil                    => size
+      case Empty :: rest          => go(rest, size)
+      case BNode(_, l, r) :: rest => go(l :: r :: rest, size + 1)
+    go(List(this), 0)
+
   def collectLeaves: List[T] = {
     @tailrec
     def go(
@@ -53,4 +61,11 @@ enum BTree[+T]:
     go(List(this), 0)
   }
 
-object BinaryTreeProblems extends App {}
+object BinaryTreeProblems extends App {
+  import BTree.{BNode, Empty}
+
+  val tree: BTree[Int] =
+    BNode(1, BNode(2, Empty, Empty), BNode(3, Empty, Empty))
+
+  println(tree.size)
+}
